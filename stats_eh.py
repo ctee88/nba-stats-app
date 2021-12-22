@@ -50,7 +50,7 @@ if __name__ == '__main__':
 		try:
 			season_string = input("\nEnter the NBA Season (e.g: '2015-16' for 2015 Season): ")
 			print("\nStat abbreviations: {}".format(fetch_stat_abbrvs()))
-			stat_string = input("\nEnter stat abbreviation (e.g: 'AST' for assists): ")
+			stat_string = (input("\nEnter stat abbreviation (e.g: 'AST' for assists): ")).upper()
 
 			response = fetch_stat_data(season_string, stat_string)
 			print(response)
@@ -69,7 +69,8 @@ if __name__ == '__main__':
 				fig.show()
 			else:
 				#TypeError and KeyError need to be addressed (when stat format wrong or params missing)
-				print("Please ensure your inputs for the season and desired stat match the e.g format")
+				print("\nData Error")
+				print("Please ensure the season is the same format as e.g: '2015-16'")
 				continue
 
 			#Flag for repeat
@@ -87,7 +88,19 @@ if __name__ == '__main__':
 					print("\nPlease provide your answer with either Y or N")
 					continue
 
-		except Exception as e:
-			print("Error")
-			print(e)
+		except json.decoder.JSONDecodeError as jerr:
+			print("\nJSONDecoderError: ", jerr)
+			print("Please ensure the season is the same format as e.g: '2015-16'")
+
+		except KeyError as kerr:
+			print("\nKeyError: ", kerr)
+			print("Please ensure that the stat is in the same format as e.g: 'AST'")
+
+		# except TypeError as terr:
+		# 	print("\nTypeError: ", terr)
+		# 	print("Please ensure that a season AND a stat are provided (no empty inputs)")
+
+		# except Exception as e:
+		# 	print("Error")
+		# 	print(e)
 
