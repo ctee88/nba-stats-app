@@ -1,7 +1,3 @@
-"""
-import endpoints
-import libraries
-"""
 from nba_api.stats.endpoints import leagueleaders
 from nba_api.stats.endpoints import leaguestandings
 from plotly.subplots import make_subplots
@@ -37,44 +33,24 @@ def fetch_pct_stat_data(year, stat):
 
 	if stat.upper() == 'FGM':
 		df_fgm = df_pct_stats[
-					['PLAYER', stat, 'FGA', 'FG_PCT']
-					].sort_values(by=stat, ascending=False)
-
+			['PLAYER', stat, 'FGA', 'FG_PCT']
+			].sort_values(by=stat, ascending=False)
 		return df_fgm[:30]
 
 	elif stat.upper() == 'FG3M':
 		df_fg3m = df_pct_stats[
-					['PLAYER', stat, 'FG3A', 'FG3_PCT']
-					].sort_values(by=stat, ascending=False)
-
+			['PLAYER', stat, 'FG3A', 'FG3_PCT']
+			].sort_values(by=stat, ascending=False)
 		return df_fg3m[:30]
 
 	elif stat.upper() == 'FTM':
 		df_ftm = df_pct_stats[
-					['PLAYER', stat, 'FTA', 'FT_PCT']
-					].sort_values(by=stat, ascending=False)
-
+			['PLAYER', stat, 'FTA', 'FT_PCT']
+			].sort_values(by=stat, ascending=False)
 		return df_ftm[:30]
 
 	else:
 		return -1
-
-#GRAPH FOR NON-% STATS (BAR CHART)
-def plot_stat_totals(df, year, stat):
-	fig = px.bar(df, x='PLAYER', y=[df[stat]],
-			title='Leaders in {} for the {} regular season'.format(stat, year),
-			labels={'value': stat, 'PLAYER': 'Player', 'variable': stat},
-			)
-
-	fig.update_traces(texttemplate=df[stat].to_list(), textposition='inside')
-	fig.update_layout(xaxis_tickangle=-45, showlegend=False,
-			uniformtext_minsize=8, uniformtext_mode='show'
-			)
-	fig.show()
-
-#GRAPH FOR % STATS (OFFSET BAR CHARTS)
-def plot_pct_stat(df, year, stat):
-	pass
 
 #FETCH STANDINGS DATA FOR SPECIFIC YEAR
 def fetch_standings(year):
@@ -102,6 +78,73 @@ def fetch_standings(year):
 
 	return df_sorted
 
+#GRAPH FOR NON-% STATS (BAR CHART)
+def plot_stat_totals(df, year, stat):
+	fig = px.bar(df, x='PLAYER', y=[df[stat]],
+		title='Leaders in {} for the {} regular season'.format(stat, year),
+		labels={'value': stat, 'PLAYER': 'Player', 'variable': stat},
+		)
+
+	fig.update_traces(marker_line_color='rgb(8,48,107)',
+		texttemplate=df[stat].to_list(), textposition='inside'
+		)
+	fig.update_layout(xaxis_tickangle=-45, showlegend=False,
+		uniformtext_minsize=8, uniformtext_mode='show'
+		)
+	fig.show()
+
+#GRAPH FOR % STATS (OFFSET BAR CHARTS)
+def plot_pct_stat(df, year):
+	"""
+	Input dfs' layout standardized by fetch_pct_stat_data() where:
+	- col[0] == PLAYERS
+	- col[1] == type of shot MADE (stat variable specified by user)
+	- col[2] == type of shot ATTEMPTED
+	- col[3] == %
+	
+	Declared the column names for readability.
+
+	fig.update_yaxes(range[0, ATTEMPTS.max()*1.125])
+	- Ensures both plots are scaled the same relative to the y-axis
+	- Attempts > Made, max value will always be in Attempts column
+	- 12.5% above max value to ensure that the max y-axis label is
+	higher than max value on graph
+	"""
+	players = df.columns.values[0]
+	made = df.columns.values[1]
+	attempted = df.columns.values[2]
+	pct = df.columns.values[3]
+
+	fig = make_subplots(specs=[[{"secondary_y": True}]])
+	
+	fig.add_trace(
+		go.Bar(x=df[players], y=df[made],
+		name=made, offsetgroup=1),
+		secondary_y=False,
+		)
+
+	fig.add_trace(
+		go.Bar(x=df[players], y=df[attempted],
+		name=attempted, offsetgroup=2),
+		secondary_y=True,
+		)
+
+	fig.update_layout(
+		title_text='Leaders in {} and their respective {} and {} for the {} regular season'.
+		format(made, attempted, pct, year),
+		xaxis_tickangle=-45
+		)
+
+	fig.update_traces(marker_line_color='rgb(8,48,107)')
+
+	fig.update_xaxes(title_text='Players')
+	fig.update_yaxes(title_text=made, secondary_y=False,
+			range=[0, df[attempted].max()*1.125])
+	fig.update_yaxes(title_text=attempted, secondary_y=True,
+			range=[0, df[attempted].max()*1.125])
+
+	fig.show()
+
 #GRAPH FOR STANDINGS (STACKED BARS)
 def plot_standings(df, year):
 	fig = px.bar(df, x='Teams', y='Win/Loss', color='Result',
@@ -109,23 +152,6 @@ def plot_standings(df, year):
 		labels={'Result': 'Wins/Losses', 'Teams': 'Team', 'Win/Loss': 'Number of Wins/Losses'}
 		)
 
+	fig.update_traces(marker_line_color='rgb(8,48,107)')
 	fig.update_layout(barmode='stack', xaxis_tickangle=-45)
 	fig.show()
-
-#Standings funcs test
-# standings_1920 = fetch_standings('2019-20')
-# plot_standings(standings_1920, '2019-20')
-
-# NON-% funcs test
-# ast_df = fetch_stat_data('2021-22', 'STL')
-# plot_stat_totals(ast_df, '2021-22', 'STL')
-
-#% funcs test
-# df_fgm = fetch_pct_stat_data('2021-22', 'FGM')
-# print(df_fgm)
-
-# df_fg3m = fetch_pct_stat_data('2021-22', 'FG3M')
-# print(df_fg3m)
-
-# df_ftm = fetch_pct_stat_data('2021-22', 'FTM')
-# print(df_ftm)
