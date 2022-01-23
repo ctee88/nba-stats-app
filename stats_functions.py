@@ -1,7 +1,12 @@
+"""
+import endpoints
+import libraries
+"""
 from nba_api.stats.endpoints import leagueleaders
 from nba_api.stats.endpoints import leaguestandings
 from plotly.subplots import make_subplots
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import json
@@ -30,7 +35,7 @@ def fetch_stat_data(year, stat):
 #FETCH SPECIFIC % STAT DATA FROM GIVEN YEAR
 def fetch_pct_stat_data(year, stat):
 	df_pct_stats = fetch_df_stats(year)
-
+	#Remove .upper() from here after finishing main.py (stat_string = input().upper())
 	if stat.upper() == 'FGM':
 		df_fgm = df_pct_stats[
 			['PLAYER', stat, 'FGA', 'FG_PCT']
@@ -75,22 +80,25 @@ def fetch_standings(year):
 	
 	df = pd.DataFrame(input_data)
 	df_sorted = df.sort_values(by='Win/Loss')
+	print(df)
 
 	return df_sorted
 
 #GRAPH FOR NON-% STATS (BAR CHART)
 def plot_stat_totals(df, year, stat):
-	fig = px.bar(df, x='PLAYER', y=[df[stat]],
+	fig = px.bar(
+		df, x='PLAYER', y=[df[stat]],
 		title='Leaders in {} for the {} regular season'.format(stat, year),
 		labels={'value': stat, 'PLAYER': 'Player', 'variable': stat},
-		)
+	)
 
 	fig.update_traces(marker_line_color='rgb(8,48,107)',
 		texttemplate=df[stat].to_list(), textposition='inside'
-		)
+	)
 	fig.update_layout(xaxis_tickangle=-45, showlegend=False,
 		uniformtext_minsize=8, uniformtext_mode='show'
-		)
+	)
+
 	fig.show()
 
 #GRAPH FOR % STATS (OFFSET BAR CHARTS)
@@ -115,42 +123,59 @@ def plot_pct_stat(df, year):
 	attempted = df.columns.values[2]
 	pct = df.columns.values[3]
 
+	#go hovertemplate customdata only works with np.array (different to px)
+	pct_array = np.empty(shape=(len(df[pct]), 1, 1), dtype='object')
+	pct_array[:,0] = np.array(df[pct]).reshape(-1, 1)
+
 	fig = make_subplots(specs=[[{"secondary_y": True}]])
 	
-	fig.add_trace(
-		go.Bar(x=df[players], y=df[made],
+	fig.add_trace(go.Bar(
+		x=df[players], y=df[made],
+		customdata=pct_array,
+		hovertemplate="<br>".join([
+			"Player: %{x}",
+			"Made: %{y}",
+			"%: %{customdata[0]:.3f}",
+		]),
 		name=made, offsetgroup=1),
 		secondary_y=False,
-		)
+	)
 
-	fig.add_trace(
-		go.Bar(x=df[players], y=df[attempted],
+	fig.add_trace(go.Bar(
+		x=df[players], y=df[attempted],
+		hovertemplate="<br>".join([
+			"Player: %{x}",
+			"Attempted: %{y}",
+		]),
 		name=attempted, offsetgroup=2),
 		secondary_y=True,
-		)
+	)
 
 	fig.update_layout(
 		title_text='Leaders in {} and their respective {} and {} for the {} regular season'.
 		format(made, attempted, pct, year),
 		xaxis_tickangle=-45
-		)
+	)
 
 	fig.update_traces(marker_line_color='rgb(8,48,107)')
 
 	fig.update_xaxes(title_text='Players')
 	fig.update_yaxes(title_text=made, secondary_y=False,
-			range=[0, df[attempted].max()*1.125])
+			range=[0, df[attempted].max()*1.125]
+	)
 	fig.update_yaxes(title_text=attempted, secondary_y=True,
-			range=[0, df[attempted].max()*1.125])
+			range=[0, df[attempted].max()*1.125]
+	)
 
 	fig.show()
 
 #GRAPH FOR STANDINGS (STACKED BARS)
 def plot_standings(df, year):
-	fig = px.bar(df, x='Teams', y='Win/Loss', color='Result',
+	fig = px.bar(
+		df, x='Teams', y='Win/Loss', color='Result',
 		title='NBA Standings for {} regular season'.format(year),
 		labels={'Result': 'Wins/Losses', 'Teams': 'Team', 'Win/Loss': 'Number of Wins/Losses'}
-		)
+	)
 
 	fig.update_traces(marker_line_color='rgb(8,48,107)')
 	fig.update_layout(barmode='stack', xaxis_tickangle=-45)
