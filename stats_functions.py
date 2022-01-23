@@ -28,7 +28,7 @@ def fetch_df_stats(year):
 #FETCH SPECIFIC CUMULATIVE (CUME) STAT DATA FROM GIVEN YEAR
 def fetch_stat_data(year, stat):
 	df_stats = fetch_df_stats(year)
-	df_stat = df_stats[['PLAYER', stat]].sort_values(by=stat, ascending=False)
+	df_stat = df_stats[['PLAYER', stat, 'GP', 'MIN']].sort_values(by=stat, ascending=False)
 
 	return df_stat[:30]
 
@@ -88,12 +88,19 @@ def fetch_standings(year):
 def plot_stat_totals(df, year, stat):
 	fig = px.bar(
 		df, x='PLAYER', y=[df[stat]],
+		custom_data=[df['GP'], df['MIN']],
 		title='Leaders in {} for the {} regular season'.format(stat, year),
-		labels={'value': stat, 'PLAYER': 'Player', 'variable': stat},
+		labels={'value': stat, 'PLAYER': 'Players'},
 	)
 
 	fig.update_traces(marker_line_color='rgb(8,48,107)',
-		texttemplate=df[stat].to_list(), textposition='inside'
+		texttemplate=df[stat].to_list(), textposition='inside',
+		hovertemplate="<br>".join([
+			"Player: %{x}",
+			"<b>Amount: %{y}</b>",
+			"<b>Games Played: %{customdata[0]}</b>",
+			"<b>Minutes Played: %{customdata[1]}</b>",
+		])
 	)
 	fig.update_layout(xaxis_tickangle=-45, showlegend=False,
 		uniformtext_minsize=8, uniformtext_mode='show'
@@ -116,7 +123,7 @@ def plot_pct_stat(df, year):
 	- Ensures both plots are scaled the same relative to the y-axis
 	- Attempts > Made, max value will always be in Attempts column
 	- 12.5% above max value to ensure that the max y-axis label is
-	higher than max value on graph
+	higher than max y-value on graph
 	"""
 	players = df.columns.values[0]
 	made = df.columns.values[1]
@@ -134,8 +141,8 @@ def plot_pct_stat(df, year):
 		customdata=pct_array,
 		hovertemplate="<br>".join([
 			"Player: %{x}",
-			"Made: %{y}",
-			"%: %{customdata[0]:.3f}",
+			"<b>Made: %{y}</b>",
+			"<b>%: %{customdata[0]:.3f}</b>",
 		]),
 		name=made, offsetgroup=1),
 		secondary_y=False,
@@ -145,7 +152,7 @@ def plot_pct_stat(df, year):
 		x=df[players], y=df[attempted],
 		hovertemplate="<br>".join([
 			"Player: %{x}",
-			"Attempted: %{y}",
+			"<b>Attempted: %{y}</b>",
 		]),
 		name=attempted, offsetgroup=2),
 		secondary_y=True,
