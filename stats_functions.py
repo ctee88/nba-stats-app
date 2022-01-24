@@ -61,8 +61,10 @@ def fetch_pct_stat_data(year, stat):
 def fetch_standings(year):
 	input_data = {}
 	input_data['Teams'], input_data['Result'], input_data['Win/Loss'] = [], [], []
+	# input_data['L10'] = []
 
 	standings = json.loads(leaguestandings.LeagueStandings(season=year).standings.get_json())
+	print(standings['data'])
 
 	for teams_data in standings['data']:
 		#[3] = City Name, [4] = Team Name. Join for full team name.
@@ -73,17 +75,21 @@ def fetch_standings(year):
 		input_data['Teams'].append(team_name)
 		input_data['Result'].append('Wins')
 		input_data['Win/Loss'].append(int(teams_data[12]))
-		
+
+		#[19] = L10
+		# input_data['L10'].append()
+
 		input_data['Teams'].append(team_name)
 		input_data['Result'].append('Losses')
 		input_data['Win/Loss'].append(int(teams_data[13]))
 	
 	df = pd.DataFrame(input_data)
 	df_sorted = df.sort_values(by='Win/Loss')
+	#Printing will occur in main.py 
 	print(df)
-
+	
 	return df_sorted
-
+	
 #GRAPH FOR NON-% STATS (BAR CHART)
 def plot_stat_totals(df, year, stat):
 	fig = px.bar(
@@ -180,10 +186,18 @@ def plot_pct_stat(df, year):
 def plot_standings(df, year):
 	fig = px.bar(
 		df, x='Teams', y='Win/Loss', color='Result',
+		#custom_data=['Result'],
 		title='NBA Standings for {} regular season'.format(year),
-		labels={'Result': 'Wins/Losses', 'Teams': 'Team', 'Win/Loss': 'Number of Wins/Losses'}
+		labels={'Result': 'Wins/Losses', 'Win/Loss': 'Number of Wins/Losses'}
 	)
 
-	fig.update_traces(marker_line_color='rgb(8,48,107)')
+	fig.update_traces(marker_line_color='rgb(8,48,107)',
+		hovertemplate="<br>".join([
+			"Team: %{x}",
+			#"W or L: %{customdata[0]}",
+			"<b>Amount: %{y}</b>",
+		])
+	)
+		#texttemplate=df['Win/Loss'].to_list(), textposition='inside')
 	fig.update_layout(barmode='stack', xaxis_tickangle=-45)
 	fig.show()
