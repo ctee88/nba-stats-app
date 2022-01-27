@@ -4,7 +4,7 @@ import libraries
 """
 from nba_api.stats.endpoints import leagueleaders
 from nba_api.stats.endpoints import leaguestandings
-from plotly.subplots import make_subplots
+import plotly.subplots as sp
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -59,36 +59,31 @@ def fetch_pct_stat_data(year, stat):
 
 #FETCH STANDINGS DATA FOR SPECIFIC YEAR
 def fetch_standings(year):
-	input_data = {}
-	input_data['Teams'], input_data['Result'], input_data['Win/Loss'] = [], [], []
-	# input_data['L10'] = []
-
 	standings = json.loads(leaguestandings.LeagueStandings(season=year).standings.get_json())
-	print(standings['data'])
+	df = pd.DataFrame(standings['data'], columns=standings['headers'])
+
+	df_standings = df[
+		['TeamName', 'Conference', 'PlayoffRank', 'WINS', 'LOSSES', 'WinPCT', 'Record', 'L10']
+	]
+
+	team_names = {}
+	team_names['Team Names'] = []
 
 	for teams_data in standings['data']:
-		#[3] = City Name, [4] = Team Name. Join for full team name.
+		#[3] = City Names, [4] = Team Names. Join for full team name.
 		city_and_team = [teams_data[3], teams_data[4]]
 		team_name = " ".join(city_and_team)
-
-		#[12] = Wins, [13] = Losses
-		input_data['Teams'].append(team_name)
-		input_data['Result'].append('Wins')
-		input_data['Win/Loss'].append(int(teams_data[12]))
-
-		#[19] = L10
-		# input_data['L10'].append()
-
-		input_data['Teams'].append(team_name)
-		input_data['Result'].append('Losses')
-		input_data['Win/Loss'].append(int(teams_data[13]))
+		team_names['Team Names'].append(team_name)
 	
-	df = pd.DataFrame(input_data)
-	df_sorted = df.sort_values(by='Win/Loss')
-	#Printing will occur in main.py 
-	print(df)
+	#Replace short team name with full team name in df_standings.
+	df_teamnames = pd.DataFrame(team_names)
+	df_standings = df_standings.assign(TeamName=df_teamnames['Team Names'])
+
+	#Return 2 dfs: one for East conf, one for West conf.
+	df_east = df_standings[df_standings['Conference']=='East']
+	df_west = df_standings[df_standings['Conference']=='West']
 	
-	return df_sorted
+	return [df_east, df_west]
 	
 #GRAPH FOR NON-% STATS (BAR CHART)
 def plot_stat_totals(df, year, stat):
@@ -140,7 +135,7 @@ def plot_pct_stat(df, year):
 	pct_array = np.empty(shape=(len(df[pct]), 1, 1), dtype='object')
 	pct_array[:,0] = np.array(df[pct]).reshape(-1, 1)
 
-	fig = make_subplots(specs=[[{"secondary_y": True}]])
+	fig = sp.make_subplots(specs=[[{"secondary_y": True}]])
 	
 	fig.add_trace(go.Bar(
 		x=df[players], y=df[made],
@@ -183,21 +178,53 @@ def plot_pct_stat(df, year):
 	fig.show()
 
 #GRAPH FOR STANDINGS (STACKED BARS)
-def plot_standings(df, year):
-	fig = px.bar(
-		df, x='Teams', y='Win/Loss', color='Result',
-		#custom_data=['Result'],
-		title='NBA Standings for {} regular season'.format(year),
-		labels={'Result': 'Wins/Losses', 'Win/Loss': 'Number of Wins/Losses'}
+def plot_standings(dfs, year):
+	#Create figs for East and West
+	fig_east = px.bar(dfs[0], x='TeamName', y=['WINS', 'LOSSES'],
+		custom_data=[dfs[0]['Record'], dfs[0]['WinPCT'], dfs[0]['L10']]
 	)
 
-	fig.update_traces(marker_line_color='rgb(8,48,107)',
+	fig_west = px.bar(dfs[1], x='TeamName', y=['WINS', 'LOSSES'],
+		custom_data=[dfs[1]['Record'], dfs[1]['WinPCT'], dfs[1]['L10']]
+	)
+
+	#Store traces from each plot in an array
+	fig_east_traces, fig_west_traces = [], []
+
+	for trace in range(len(fig_east['data'])):
+		fig_east_traces.append(fig_east['data'][trace])
+	for trace in range(len(fig_west['data'])):
+		fig_west_traces.append(fig_west['data'][trace])
+
+	#Create 2x1 subplot which the traces will be added to
+	final_fig = sp.make_subplots(rows=2, cols=1,
+		subplot_titles=('Eastern Conference', 'Western Conference')
+	)
+
+	#Add traces to final plot within the subplot.
+	for traces in fig_east_traces:
+		final_fig.append_trace(traces, row=1, col=1)
+	for traces in fig_west_traces:
+		final_fig.append_trace(traces, row=2, col=1)
+
+	final_fig.update_layout(
+		barmode='stack', xaxis_tickangle=-45,
+		xaxis2_tickangle=-45, 
+		title_text='NBA Standings for the {} regular season'.format(year),
+		showlegend=False
+	)
+
+	final_fig.update_xaxes(title_text='Teams')
+	final_fig.update_yaxes(title_text='Number of Wins/Losses')
+
+	final_fig.update_traces(marker_line_color='rgb(8,48,107)',
 		hovertemplate="<br>".join([
 			"Team: %{x}",
-			#"W or L: %{customdata[0]}",
 			"<b>Amount: %{y}</b>",
+			"<b>Record (W-L): %{customdata[0]}</b>",
+			"<b>Win %: %{customdata[1]}</b>",
+			"L10 (<b>W-L</b>): %{customdata[2]}",
 		])
 	)
-		#texttemplate=df['Win/Loss'].to_list(), textposition='inside')
-	fig.update_layout(barmode='stack', xaxis_tickangle=-45)
-	fig.show()
+
+	final_fig.show()
