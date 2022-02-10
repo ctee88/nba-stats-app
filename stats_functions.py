@@ -27,14 +27,14 @@ def fetch_stats(year):
 
 	return df
 
-#FETCH SPECIFIC CUMULATIVE (CUME) STAT DATA FROM GIVEN YEAR
+#FETCH SPECIFIC NON-SHOOTING STAT DATA
 def fetch_non_shooting_stat(year, stat):
 	df_stats = fetch_stats(year)
 	df_stat = df_stats[['PLAYER', stat, 'GP', 'MIN']].sort_values(by=stat, ascending=False)
 
 	return df_stat[:30]
 
-#FETCH SPECIFIC % STAT DATA FROM GIVEN YEAR
+#FETCH SPECIFIC SHOOTING STAT DATA
 def fetch_shooting_stat(year, stat):
 	df_stats = fetch_stats(year)
 
@@ -82,7 +82,7 @@ def fetch_standings(year):
 	
 	return df_east, df_west
 	
-#GRAPH FOR NON-% STATS (BAR CHART)
+#GRAPH FOR NON-SHOOTING STATS (BAR CHART)
 def plot_non_shooting_stat(df, year, stat):
 	fig = px.bar(
 		df, x='PLAYER', y=[df[stat]],
@@ -106,7 +106,7 @@ def plot_non_shooting_stat(df, year, stat):
 
 	fig.show()
 
-#GRAPH FOR % STATS (OFFSET BAR CHARTS)
+#GRAPH FOR SHOOTING STATS
 def plot_shooting_stat(df, year):
 	"""
 	Input dfs' layout standardized by fetch_pct_stat_data() where:
@@ -176,7 +176,7 @@ def plot_shooting_stat(df, year):
 
 	fig.show()
 
-#GRAPH FOR STANDINGS (STACKED BARS)
+#GRAPH FOR STANDINGS (STACKED HORIZONTAL BARS)
 def plot_standings(dfs, year):
 	#Create figs for East and West
 	fig_east = px.bar(dfs[0], x=['WINS', 'LOSSES'], y='TeamName',
@@ -210,7 +210,7 @@ def plot_standings(dfs, year):
 
 	# for data in final_fig.data:
 	# 	data['width'] = 0.5
-		#data['orientation'] = 'h'
+	#	data['orientation'] = 'h'
 
 	final_fig.update_layout(
 		barmode='stack', xaxis_tickangle=-45,
