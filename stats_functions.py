@@ -1,7 +1,3 @@
-"""
-import endpoints
-import libraries
-"""
 from nba_api.stats.endpoints import leagueleaders
 from nba_api.stats.endpoints import leaguestandings
 import plotly.subplots as sp
@@ -10,61 +6,62 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import json
-import sys
 
-"""
-STAT ABBRVS DISPLAY (needs to be 2 separate funcs - 1 for %, 1 for non-%??)
-- Pass list(s) to conditional
-- Return respective stats (e.g ['AST', 'TOV', 'BLK'...] and ['3PA', '3PM', '3PCT'...])
-"""
+stats_dict = {
+	"stat_types": ['SHOOTING', 'NON-SHOOTING', 'STANDINGS'],
+	"shooting_stats": ['FGM', 'FG3M', 'FTM'],
+	"non_shooting_stats": ['GP', 'MIN', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PTS', 'AST_TOV', 'STL_TOV'],
+	"standings_stats": ['TeamName', 'Conference', 'PlayoffRank', 'WINS', 'LOSSES', 'WinPCT', 'Record', 'L10'],
+}
+
+def show_shooting_stats():
+	print("\nShooting stats available: {}".format(stats_dict['shooting_stats']))
+
+def show_non_shooting_stats():
+	print("\nNon-shooting stats available: {}".format(stats_dict['non_shooting_stats']))
 
 #HELPER FUNCTION - RETURNS DF WITH ALL STATS FOR GIVEN YEAR
-def fetch_df_stats(year):
+def fetch_stats(year):
 	stats = json.loads(leagueleaders.LeagueLeaders(season=year).league_leaders.get_json())
 	df = pd.DataFrame(stats['data'], columns=stats['headers'])
 
 	return df
 
 #FETCH SPECIFIC CUMULATIVE (CUME) STAT DATA FROM GIVEN YEAR
-def fetch_stat_data(year, stat):
-	df_stats = fetch_df_stats(year)
+def fetch_non_shooting_stat(year, stat):
+	df_stats = fetch_stats(year)
 	df_stat = df_stats[['PLAYER', stat, 'GP', 'MIN']].sort_values(by=stat, ascending=False)
 
 	return df_stat[:30]
 
 #FETCH SPECIFIC % STAT DATA FROM GIVEN YEAR
-def fetch_pct_stat_data(year, stat):
-	df_pct_stats = fetch_df_stats(year)
-	#Remove .upper() from here after finishing main.py (stat_string = input().upper())
-	if stat.upper() == 'FGM':
-		df_fgm = df_pct_stats[
+def fetch_shooting_stat(year, stat):
+	df_stats = fetch_stats(year)
+
+	if stat == 'FGM':
+		df_fgm = df_stats[
 			['PLAYER', stat, 'FGA', 'FG_PCT']
 			].sort_values(by=stat, ascending=False)
 		return df_fgm[:30]
 
-	elif stat.upper() == 'FG3M':
-		df_fg3m = df_pct_stats[
+	elif stat == 'FG3M':
+		df_fg3m = df_stats[
 			['PLAYER', stat, 'FG3A', 'FG3_PCT']
 			].sort_values(by=stat, ascending=False)
 		return df_fg3m[:30]
 
-	elif stat.upper() == 'FTM':
-		df_ftm = df_pct_stats[
+	elif stat == 'FTM':
+		df_ftm = df_stats[
 			['PLAYER', stat, 'FTA', 'FT_PCT']
 			].sort_values(by=stat, ascending=False)
 		return df_ftm[:30]
-
-	else:
-		return -1
 
 #FETCH STANDINGS DATA FOR SPECIFIC YEAR
 def fetch_standings(year):
 	standings = json.loads(leaguestandings.LeagueStandings(season=year).standings.get_json())
 	df = pd.DataFrame(standings['data'], columns=standings['headers'])
 
-	df_standings = df[
-		['TeamName', 'Conference', 'PlayoffRank', 'WINS', 'LOSSES', 'WinPCT', 'Record', 'L10']
-	]
+	df_standings = df[stats_dict['standings_stats']]
 
 	team_names = {}
 	team_names['Team Names'] = []
@@ -83,10 +80,10 @@ def fetch_standings(year):
 	df_east = df_standings[df_standings['Conference']=='East']
 	df_west = df_standings[df_standings['Conference']=='West']
 	
-	return [df_east, df_west]
+	return df_east, df_west
 	
 #GRAPH FOR NON-% STATS (BAR CHART)
-def plot_stat_totals(df, year, stat):
+def plot_non_shooting_stat(df, year, stat):
 	fig = px.bar(
 		df, x='PLAYER', y=[df[stat]],
 		custom_data=[df['GP'], df['MIN']],
@@ -110,7 +107,7 @@ def plot_stat_totals(df, year, stat):
 	fig.show()
 
 #GRAPH FOR % STATS (OFFSET BAR CHARTS)
-def plot_pct_stat(df, year):
+def plot_shooting_stat(df, year):
 	"""
 	Input dfs' layout standardized by fetch_pct_stat_data() where:
 	- col[0] == PLAYERS
@@ -151,9 +148,11 @@ def plot_pct_stat(df, year):
 
 	fig.add_trace(go.Bar(
 		x=df[players], y=df[attempted],
+		customdata=pct_array,
 		hovertemplate="<br>".join([
 			"Player: %{x}",
 			"<b>Attempted: %{y}</b>",
+			"<b>%: %{customdata[0]:.3f}</b>",
 		]),
 		name=attempted, offsetgroup=2),
 		secondary_y=True,
@@ -180,13 +179,15 @@ def plot_pct_stat(df, year):
 #GRAPH FOR STANDINGS (STACKED BARS)
 def plot_standings(dfs, year):
 	#Create figs for East and West
-	fig_east = px.bar(dfs[0], x='TeamName', y=['WINS', 'LOSSES'],
-		custom_data=[dfs[0]['Record'], dfs[0]['WinPCT'], dfs[0]['L10']]
-	)
+	fig_east = px.bar(dfs[0], x=['WINS', 'LOSSES'], y='TeamName',
+		custom_data=[dfs[0]['Record'], dfs[0]['WinPCT'], dfs[0]['L10']],
+		orientation='h'
+		)
 
-	fig_west = px.bar(dfs[1], x='TeamName', y=['WINS', 'LOSSES'],
-		custom_data=[dfs[1]['Record'], dfs[1]['WinPCT'], dfs[1]['L10']]
-	)
+	fig_west = px.bar(dfs[1], x=['WINS', 'LOSSES'], y='TeamName',
+		custom_data=[dfs[1]['Record'], dfs[1]['WinPCT'], dfs[1]['L10']],
+		orientation='h'
+		)
 
 	#Store traces from each plot in an array
 	fig_east_traces, fig_west_traces = [], []
@@ -199,7 +200,7 @@ def plot_standings(dfs, year):
 	#Create 2x1 subplot which the traces will be added to
 	final_fig = sp.make_subplots(rows=2, cols=1,
 		subplot_titles=('Eastern Conference', 'Western Conference')
-	)
+		)
 
 	#Add traces to final plot within the subplot.
 	for traces in fig_east_traces:
@@ -207,12 +208,16 @@ def plot_standings(dfs, year):
 	for traces in fig_west_traces:
 		final_fig.append_trace(traces, row=2, col=1)
 
+	# for data in final_fig.data:
+	# 	data['width'] = 0.5
+		#data['orientation'] = 'h'
+
 	final_fig.update_layout(
 		barmode='stack', xaxis_tickangle=-45,
 		xaxis2_tickangle=-45, 
 		title_text='NBA Standings for the {} regular season'.format(year),
 		showlegend=False
-	)
+		)
 
 	final_fig.update_xaxes(title_text='Teams')
 	final_fig.update_yaxes(title_text='Number of Wins/Losses')
@@ -223,7 +228,7 @@ def plot_standings(dfs, year):
 			"<b>Amount: %{y}</b>",
 			"<b>Record (W-L): %{customdata[0]}</b>",
 			"<b>Win %: %{customdata[1]}</b>",
-			"L10 (<b>W-L</b>): %{customdata[2]}",
+			"<b>L10 (W-L): %{customdata[2]}</b>",
 		])
 	)
 
