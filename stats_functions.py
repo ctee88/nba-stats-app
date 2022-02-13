@@ -219,8 +219,8 @@ def plot_standings(dfs, year):
 		showlegend=False
 		)
 
-	final_fig.update_xaxes(title_text='Teams')
-	final_fig.update_yaxes(title_text='Number of Wins/Losses')
+	final_fig.update_xaxes(title_text='Number of Wins/Losses')
+	final_fig.update_yaxes(title_text='Teams')
 
 	final_fig.update_traces(marker_line_color='rgb(8,48,107)',
 		hovertemplate="<br>".join([
