@@ -61,6 +61,7 @@ See the relevant files for more detailed annotations. My project is made up of t
 
 # Limitations
 - For shooting stats, the program only retrieves the top 30 players of shots **made** and not **attempted** - Can't fetch the top 30 players who have **attempted** the most of a certain type of shot.
+- Shooting stats graph scaling or graph type (bar graph) may be an issue as it is difficult to see the difference in shots made with adjacent players on the visualisation.
  
 **Features to be added:**
 - Will need to add a feature which allows the user to exit the program at any point instead of just at the end.
