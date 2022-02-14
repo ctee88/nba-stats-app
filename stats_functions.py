@@ -208,10 +208,6 @@ def plot_standings(dfs, year):
 	for traces in fig_west_traces:
 		final_fig.append_trace(traces, row=2, col=1)
 
-	# for data in final_fig.data:
-	# 	data['width'] = 0.5
-	#	data['orientation'] = 'h'
-
 	final_fig.update_layout(
 		barmode='stack', xaxis_tickangle=-45,
 		xaxis2_tickangle=-45, 
@@ -224,8 +220,8 @@ def plot_standings(dfs, year):
 
 	final_fig.update_traces(marker_line_color='rgb(8,48,107)',
 		hovertemplate="<br>".join([
-			"Team: %{x}",
-			"<b>Amount: %{y}</b>",
+			"Team: %{y}",
+			"<b>Amount: %{x}</b>",
 			"<b>Record (W-L): %{customdata[0]}</b>",
 			"<b>Win %: %{customdata[1]}</b>",
 			"<b>L10 (W-L): %{customdata[2]}</b>",
