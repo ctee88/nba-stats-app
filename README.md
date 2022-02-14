@@ -5,11 +5,11 @@ A program with user functionality where the user can look at some basic visualis
 - User can provide a season, type of stat (**shooting/non-shooting/standings**) and stat (e.g. **Shooting: Field Goals Made (FGM). Non-shooting: Blocks (BLK)**)
 - A graph is then plotted corresponding to the user input:
 
-  - Shooting stats will return a grouped-bar graph of the top 30 players (for a specific season) who have **Made** the most of a type of shot, their **Attempts** of said shot and the respective **Percentage** is included in the hovertext of each bar. ![Shooting Graph Example](/images/shooting.png)
+  - Shooting stats will return a grouped-bar graph of the top 30 players (for a specific season) who have **Made** the most of a type of shot, their **Attempts** of said shot and the respective **Percentage** is included in the hovertext of each bar. ![]()
   
-  - Non-shooting stats will return a bar graph of the top 30 players (for a specific season) for a specific **Stat**. Players' **Minutes Played** and **Games Played** are    included in the hovertext of each bar. ![Non-shooting Graph Example](/images/non-shooting.png)
+  - Non-shooting stats will return a bar graph of the top 30 players (for a specific season) for a specific **Stat**. Players' **Minutes Played** and **Games Played** are    included in the hovertext of each bar. ![]()
 
-  - Standings stats will return two stacked-bar graphs representing the **Wins** and **Losses** of the teams in the different conferences (East and West). Teams' overall **W-L Record, Win %, Last 10 games record** are included in the hovertext of each bar. ![Standings Graph Example](/images/standings.png) 
+  - Standings stats will return two stacked-bar graphs representing the **Wins** and **Losses** of the teams in the different conferences (East and West). Teams' overall **W-L Record, Win %, Last 10 games record** are included in the hovertext of each bar. ![]()
   
    **Note: Graph may appear squashed on smaller screens, zoom-out accordingly (*CTRL* and *-* key on Windows).**
 
