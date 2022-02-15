@@ -2,14 +2,22 @@
 A program with user functionality where the user can look at some basic visualisations (player stats or team standings). The program uses the nba_api API client package (see https://github.com/swar/nba_api) to access the APIs for NBA.com. There is extensive documentation found on this repository, thank you for all of your hard work! This project would not be possible without this amazing repository.
 
 # Features
-- User can provide a season, type of stat (**shooting/non-shooting/standings**) and stat (e.g. **Shooting: Field Goals Made (FGM). Non-shooting: Blocks (BLK)**)
+- User can provide a season, type of stat (**shooting/non-shooting/standings**) and stat (e.g. **Shooting: 3-point Field Goals Made (FG3M). Non-shooting: Assists (AST)**)
 - A graph is then plotted corresponding to the user input:
 
-  - Shooting stats will return a grouped-bar graph of the top 30 players (for a specific season) who have **Made** the most of a type of shot, their **Attempts** of said shot and the respective **Percentage** is included in the hovertext of each bar. **__INCLUDE EXAMPLE OUTPUT HERE IN SCREENSHOT FORM__**
+  - Shooting stats will return a grouped-bar graph of the top 30 players (for a specific season) who have **Made** the most of a certain type of shot, their **Attempts** of said shot and the respective **Percentage** is included in the hovertext of each bar. 
+  
+    **Shooting Graph Example:**![Shooting Graph Example](images/shooting.png)
+  
+  - Non-shooting stats will return a bar graph of the top 30 players (for a specific season) for a specific **Stat**. Players' **Minutes Played** and **Games Played** are    included in the hovertext of each bar. 
 
-  - Non-shooting stats will return a bar graph of the top 30 players (for a specific season) for a specific **Stat**. Players' **Minutes Played** and **Games Played** are    included in the hovertext of each bar. **__INCLUDE EXAMPLE OUTPUT HERE IN SCREENSHOT FORM__**
+    **Non-shooting Graph Example:**![Non-shooting Graph Example](images/non_shooting.png)
 
-  - Standings stats will return two stacked-bar graphs representing the **Wins** and **Losses** of the teams in the different conferences (East and West). Teams' overall **W-L Record, Win %, Last 10 games record** are included in the hovertext of each bar. **__INCLUDE EXAMPLE OUTPUT HERE IN SCREENSHOT FORM__** Note: Graph may appear squashed on smaller screens, zoom-out accordingly (**CTRL** and **-** key on Windows).
+  - Standings stats will return two stacked-bar graphs representing the **Wins** and **Losses** of the teams in the different conferences (East and West). Teams' overall **W-L Record, Win %, Last 10 games record** are included in the hovertext of each bar. 
+  
+    **Standings Graph Example:**![Standings Graph Example](images/standings.png)
+  
+   **Note: Standings Graph may appear squashed (not all teams displayed) on smaller screens, zoom-out accordingly (*CTRL* and *-* key on Windows).**
 
 # Requirements
 - Python 3.8 (or newer)
@@ -56,7 +64,7 @@ You can exit the program by inputting 'N' when prompted at the end of a visualis
 # Components
 See the relevant files for more detailed annotations. My project is made up of these parts:
 
-- main.py - Executable code to run the game is located here. Control flow is managed in this file.
+- main.py - Executable code to run the game is located here. Control flow of user input is managed in this file.
 - stats_functions.py - Module containing all of the functions used to make the API calls, process the data and create the visualisations.
 
 # Limitations
@@ -64,7 +72,7 @@ See the relevant files for more detailed annotations. My project is made up of t
 - Shooting stats graph scaling or graph type (bar graph) may be an issue as it is difficult to see the difference in shots made with adjacent players on the visualisation.
  
 **Features to be added:**
-- Will need to add a feature which allows the user to exit the program at any point instead of just at the end.
+- Will need to add a feature which allows the user to exit the program at any point instead of only after the visualisation.
 - Hovertext for shooting and non-shooting stats could include a few more useful metrics: 
   - Shooting: **Games Played, Minutes Played, Team Name**
   - Non-shooting: **Team Name**
