@@ -106,10 +106,10 @@ def plot_non_shooting_stat(df, year, stat):
 
 	fig.show()
 
-#GRAPH FOR SHOOTING STATS
+#GRAPH FOR SHOOTING STATS (GROUPED BAR CHART)
 def plot_shooting_stat(df, year):
 	"""
-	Input dfs' layout standardized by fetch_pct_stat_data() where:
+	Input dfs' layout standardized by fetch_shooting_stat() where:
 	- col[0] == PLAYERS
 	- col[1] == type of shot MADE (stat variable specified by user)
 	- col[2] == type of shot ATTEMPTED
