@@ -64,7 +64,7 @@ You can exit the program by inputting 'N' when prompted at the end of a visualis
 # Components
 See the relevant files for more detailed annotations. My project is made up of these parts:
 
-- main.py - Executable code to run the game is located here. Control flow of user input is managed in this file.
+- main.py - Executable code to run the app is located here. Control flow of user input is managed in this file.
 - stats_functions.py - Module containing all of the functions used to make the API calls, process the data and create the visualisations.
 
 # Limitations
