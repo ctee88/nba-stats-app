@@ -1,4 +1,4 @@
-# nba-stats-app
+# nba_stats_app
 A program with user functionality where the user can look at some basic visualisations (player stats or team standings). The program uses the nba_api API client package (see https://github.com/swar/nba_api) to access the APIs for NBA.com. There is extensive documentation found on this repository, thank you for all of your hard work! This project would not be possible without this amazing repository.
 
 # Features
